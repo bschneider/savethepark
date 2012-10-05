@@ -4,19 +4,19 @@
 		<title>What's Happening In Patterson Park</title>
 		<!-- Bootstrap -->
 		<link href="css/bootstrap.min.css" rel="stylesheet">
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-12067009-4']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
+		<script type="text/javascript">
+		
+		  var _gaq = _gaq || [];
+		  _gaq.push(['_setAccount', 'UA-12067009-4']);
+		  _gaq.push(['_trackPageview']);
+		
+		  (function() {
+		    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		  })();
+		
+		</script>
 	</head>
 	
 	<body>
@@ -29,6 +29,9 @@
 		var instaLocations = ['76385','76376','3675624','3618223','2300010','91429','5369637','11110077','10537008'];
 		var allInstagram = [];
 		var allInstagramHtml = [];
+		var twitterSearches = ['%22Patterson%20Park%22','dontpavethepark','&geocode=39.289095,-76.580256,1km'];
+		var allTweets = [];
+		var allTweetsHtml = [];
 
 
 		function outputStatusTable(className, itemsList, divId){
@@ -56,6 +59,7 @@
 					post.id = this.id;
 					post.name = this.from.name;
 					post.type = this.type;
+					post.time = this.created_time;
 					
 					if(post.type == 'status') {
 						post.message = this.message;	
@@ -78,22 +82,37 @@
 			});
 		}
 		
-		function getTwitter(){
-			//Searches all public tweets for "Patterson Park" or "#dontpavethepark" or geocoded from center of park 39.289095,-76.58025,1km
-			$.getJSON('http://search.twitter.com/search.json?callback=?&q=%22Patterson%20Park%22%20OR%20#dontpavethepark%20OR%20geocode=39.289095,-76.580256,1km&result_type=recent', function(json) {
-				var twitterItems = [];
-				$.each(json.results, function(i){
-					var post = {};
-					post.date = this.created_at;
-					post.userId = this.from_user;
-					post.userName = this.from_user_name
-					post.text = this.text;
-					post.id = this.id;
-					
-					twitterItems.push('<tr><td><a href="http://twitter.com/'+post.userId+'" style="color:#F7951E">'+post.userName+'</a> - "'+post.text+'" -'+post.date+'</td></tr>');
+		function getTwitter(searches){
+			//Searches all public tweets listed in array.
+			alert("twitter");
+			var urlBase = 'http://search.twitter.com/search.json?callback=?&q=';
+			var urlEnd = '&result_type=recent';
+			
+			if(searches.length > 0){
+				
+				$.getJSON(urlBase+searches[0]+urlEnd, function(json) {
+					var twitterItems = [];
+					$.each(json.results, function(i){
+						var tweet = {};
+						tweet.time = this.created_at;
+						tweet.userId = this.from_user;
+						tweet.name = this.from_user_name;
+						tweet.avatar = this.profile_image_url;
+						tweet.text = this.text;
+						tweet.id = this.id_str;
+						allTweets.push(tweet);
+					});
+					searches.shift();
+					getTwitter(searches);
 				});
-				outputStatusTable('twitterStatusList', twitterItems, '#twitterStatus');
-			});
+			}else{
+				alert("tweetsort");
+				allTweets.sort(compare);
+				$.each(allTweets, function(i){
+					allTweetsHtml.push('<tr><td><a href="http://twitter.com/'+this.userId+'" style="color:#F7951E">'+this.name+'</a> - "'+this.text+'" -<a href="https://twitter.com/'+this.userId+'/statuses/'+this.id+'">'+this.time+'</a></td></tr>')
+				})
+				outputStatusTable('twitterStatusList', allTweetsHtml, '#twitterStatus');
+			}
 		}
 
 		function getInstagram(locations){
@@ -102,7 +121,6 @@
 			
 			var urlBase = 'https://api.instagram.com/v1/locations/';
 			var urlEnd = '/media/recent?callback=?&client_id=71dc961673584243984089d5edf3da4a';
-			var doneRequests = 0;
 
 			if(locations.length > 0){
 				//Call all the current top location
@@ -110,8 +128,8 @@
 					$.each(json.data, function(i){
 						var gram = {};
 						gram.id = this.id;
-						//gram.userId = this.user.username;	//rather have real names
-						gram.userName = this.user.full_name;
+						gram.userId = this.user.name;	//rather have real names
+						gram.name = this.user.full_name;
 						gram.image = this.images.low_resolution.url;
 						gram.imageLink = this.link;
 						gram.time = this.created_time;
@@ -129,7 +147,7 @@
 			}else{
 				allInstagram.sort(compare);
 				$.each(allInstagram, function(i){
-					allInstagramHtml.push('<tr><td><a href="'+this.imageLink+'" style="color:#F7951E">'+this.userName+' - '+this.caption+'<br><img src="'+this.image+'"></a></td></tr>');
+					allInstagramHtml.push('<tr><td><a href="'+this.imageLink+'" style="color:#F7951E">'+this.name+' - '+this.caption+'<br><img src="'+this.image+'"></a></td></tr>');
 				});
 				outputStatusTable('instagramStatusList', allInstagramHtml, '#instagramStatus');
 			}			
@@ -138,8 +156,8 @@
 		$(document).ready(function(){
 			// Get status updates and locations on load
 			getFacebook();
-			getInstagram(instaLocations)
-			getTwitter();
+			getInstagram(instaLocations);
+			getTwitter(twitterSearches);
 		});
 		</script>
 
@@ -173,7 +191,7 @@
 							<ol>
 								<li>Monday, October 1st, 6:30-8:00pm at Virginia Baker Rec Center in Patterson Park</li>
 								<li>Saturday, October 6th, 10:30am-12:00pm at Hampstead Hill Academy, 500 S. Linwood Ave.</li>
-								<li>Tuesday, October 9th, 7:00-8:30pm at St. AndrewÕs Church, 2028 E. Lombard St.</li>
+								<li>Tuesday, October 9th, 7:00-8:30pm at St. Andrewï¿½s Church, 2028 E. Lombard St.</li>
 								<li>Thursday, October 11th, 7:30-9:00 pm at Breath of God Lutheran Church, 141 S. Clinton St.</li>
 							</ol>
 							</small>
