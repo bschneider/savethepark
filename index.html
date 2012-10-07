@@ -3,7 +3,9 @@
 	<head>
 		<title>What's Happening In Patterson Park</title>
 		<!-- Bootstrap -->
-		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<!--  <link href="css/bootstrap.min.css" rel="stylesheet"> -->
+		<!--  <link href="css/bootstrap.min.space.css" rel="stylesheet"> -->
+		<link href="css/bootstrap.min.spruce.css" rel="stylesheet">
 		<script type="text/javascript">
 		
 		  var _gaq = _gaq || [];
@@ -26,12 +28,15 @@
 		// GLOBALS
 		//major festivals in the Park area - //NOT USED YET --- var instaFestivals = [''34758714','20203946',]
 		//'34480183':BSSC Football,'1085877':ice rink,'18870116':baltimore bocce,'2833987':utz field,'18986673':PattersonPark Bocce
-		var instaLocations = ['76385','76376','3675624','3618223','2300010','91429','5369637','11110077','10537008'];
+		var instaLocations = ['tags/pattersonpark','locations/76385','locations/76376','locations/3675624','locations/3618223','locations/2300010','locations/91429','locations/5369637','locations/11110077','locations/10537008'];
 		var allInstagram = [];
 		var allInstagramHtml = [];
 		var twitterSearches = ['%22Patterson%20Park%22','dontpavethepark','&geocode=39.289095,-76.580256,1km'];
 		var allTweets = [];
 		var allTweetsHtml = [];
+		var facebookSearches = ['%22Patterson%20Park%22',]
+		var now = new Date();
+		var lastWeek = new Date(now.getTime()-1000*60*60*24*10);
 
 
 		function outputStatusTable(className, itemsList, divId){
@@ -52,18 +57,19 @@
 		function getFacebook(){
 			//Searches all public status updates, gets the link if there is one.
 			//Want to expand to pages that represent Patterson Park area (PPNA, Dog Park, BSSC)
-			$.getJSON('https://graph.facebook.com/search?q=%22Patterson%20Park%22&type=post&limit=25', function(json) {
+			//45 was picked because that's how many tweets we can get without oauth 
+			$.getJSON('https://graph.facebook.com/search?q=%22Patterson%20Park%22&type=post&limit=45', function(json) {
 				var facebookItems = [];
 				$.each(json.data, function(i){
 					var post = {};
 					post.id = this.id;
 					post.name = this.from.name;
 					post.type = this.type;
-					post.time = this.created_time;
+					post.time = new Date(this.created_time);
 					
 					if(post.type == 'status') {
 						post.message = this.message;	
-						facebookItems.push('<tr><td><font color="#F7951E">'+post.name+'</font> - "'+post.message+'"</td></tr>'); 
+						facebookItems.push('<tr><td><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - '+post.time+'</td></tr>'); 
 					}
 					if(post.type == 'link') {
 						post.link = this.link;
@@ -71,9 +77,9 @@
 						post.linkDescription = this.description;
 						post.message = this.message;
 						if(post.message){
-							facebookItems.push('<tr><td><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a>"</td></tr>');
+							facebookItems.push('<tr><td><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</td></tr>');
 						}else{
-							facebookItems.push('<tr><td><font color="#F7951E">'+post.name+'</font> - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a>"</td></tr>');
+							facebookItems.push('<tr><td><font color="#F7951E">'+post.name+'</font> - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</td></tr>');
 						}
 					}
 					 
@@ -84,7 +90,6 @@
 		
 		function getTwitter(searches){
 			//Searches all public tweets listed in array.
-			alert("twitter");
 			var urlBase = 'http://search.twitter.com/search.json?callback=?&q=';
 			var urlEnd = '&result_type=recent';
 			
@@ -94,7 +99,7 @@
 					var twitterItems = [];
 					$.each(json.results, function(i){
 						var tweet = {};
-						tweet.time = this.created_at;
+						tweet.time = new Date(this.created_at);
 						tweet.userId = this.from_user;
 						tweet.name = this.from_user_name;
 						tweet.avatar = this.profile_image_url;
@@ -106,7 +111,6 @@
 					getTwitter(searches);
 				});
 			}else{
-				alert("tweetsort");
 				allTweets.sort(compare);
 				$.each(allTweets, function(i){
 					allTweetsHtml.push('<tr><td><a href="http://twitter.com/'+this.userId+'" style="color:#F7951E">'+this.name+'</a> - "'+this.text+'" -<a href="https://twitter.com/'+this.userId+'/statuses/'+this.id+'">'+this.time+'</a></td></tr>')
@@ -119,8 +123,8 @@
 			//Searches all public posts that are tagged with Foursquare locations in the park.
 			//For this version I decided to just get their Instagram ids and not actually dynamically set them by calling foursquare first and then find them on instagram, too much IO
 			
-			var urlBase = 'https://api.instagram.com/v1/locations/';
-			var urlEnd = '/media/recent?callback=?&client_id=71dc961673584243984089d5edf3da4a';
+			var urlBase = 'https://api.instagram.com/v1/';
+			var urlEnd = '/media/recent?callback=?&min_timestamp='+parseInt(lastWeek.getTime()/1000)+'&client_id=71dc961673584243984089d5edf3da4a';	//min_timestamp is not officially supported
 
 			if(locations.length > 0){
 				//Call all the current top location
@@ -150,6 +154,8 @@
 					allInstagramHtml.push('<tr><td><a href="'+this.imageLink+'" style="color:#F7951E">'+this.name+' - '+this.caption+'<br><img src="'+this.image+'"></a></td></tr>');
 				});
 				outputStatusTable('instagramStatusList', allInstagramHtml, '#instagramStatus');
+				alert(allInstagram.length);
+				alert('static: 1348963200 '+new Date(1348963200*1000)+'\ndynamic '+lastWeek.getTime()+' '+lastWeek);
 			}			
 		}
 
