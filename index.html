@@ -29,21 +29,38 @@
 		//major festivals in the Park area - //NOT USED YET --- var instaFestivals = [''34758714','20203946',]
 		//'34480183':BSSC Football,'1085877':ice rink,'18870116':baltimore bocce,'2833987':utz field,'18986673':PattersonPark Bocce
 		var instaLocations = ['tags/pattersonpark','locations/76385','locations/76376','locations/3675624','locations/3618223','locations/2300010','locations/91429','locations/5369637','locations/11110077','locations/10537008'];
-		var allInstagram = [];
-		var allInstagramHtml = [];
 		var twitterSearches = ['%22Patterson%20Park%22','dontpavethepark','&geocode=39.289095,-76.580256,1km'];
-		var allTweets = [];
-		var allTweetsHtml = [];
-		var facebookSearches = ['%22Patterson%20Park%22',]
 		var now = new Date();
-		var lastWeek = new Date(now.getTime()-1000*60*60*24*10);
+		var lastWeek = new Date(now.getTime()-1000*60*60*24*7);		//Currently set to 7 days, can change as needed 
+		
+		//list for all posts
+		var allUpdates = {  
+				posts : [],
+				
+				outputHTML : function(){
+					var output = '';
+					$.each(this.posts, function(i){
+						output += this.html;
+					});
+					return output;
+				}
+				
+		}; 
+		
+		// 0/1 for whether they are finished processing 
+		var facebook = 0;
+		var twitter = 0;
+		var instagram = 0;
 
-
-		function outputStatusTable(className, itemsList, divId){
-			$('<table/>', {
-				'class': 'table table-striped table-hover '+className,
-				html: itemsList.join('')
-			}).appendTo(divId);
+		// outputStatusTable('facebookStatusList', facebookItems, '#facebookStatus');
+		function outputStatusTable(f, t, i){
+			if (f && t && i){
+				allUpdates.posts.sort(compare);
+				$('<table/>', {
+					'class': 'table table-striped table-hover allUpdatesList',
+					html: allUpdates.outputHTML()
+				}).appendTo('#facebookStatus');
+			}
 		}
 
 		function compare(a,b) {
@@ -56,7 +73,7 @@
 		
 		function getFacebook(){
 			//Searches all public status updates, gets the link if there is one.
-			//Want to expand to pages that represent Patterson Park area (PPNA, Dog Park, BSSC)
+			//Want to expand to pages that represent Patterson Park area (PPNA, Dog Park, BSSC) 
 			//45 was picked because that's how many tweets we can get without oauth 
 			$.getJSON('https://graph.facebook.com/search?q=%22Patterson%20Park%22&type=post&limit=45', function(json) {
 				var facebookItems = [];
@@ -66,10 +83,11 @@
 					post.name = this.from.name;
 					post.type = this.type;
 					post.time = new Date(this.created_time);
+					post.network = "facebook";
 					
 					if(post.type == 'status') {
 						post.message = this.message;	
-						facebookItems.push('<tr><td><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - '+post.time+'</td></tr>'); 
+						post.html = '<tr><td><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - '+post.time+'</td></tr>'; 
 					}
 					if(post.type == 'link') {
 						post.link = this.link;
@@ -77,15 +95,15 @@
 						post.linkDescription = this.description;
 						post.message = this.message;
 						if(post.message){
-							facebookItems.push('<tr><td><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</td></tr>');
+							post.html = '<tr><td><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</td></tr>';
 						}else{
-							facebookItems.push('<tr><td><font color="#F7951E">'+post.name+'</font> - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</td></tr>');
+							post.html = '<tr><td><font color="#F7951E">'+post.name+'</font> - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</td></tr>';
 						}
 					}
-					 
+					allUpdates.posts.push(post);
 				});
-				outputStatusTable('facebookStatusList', facebookItems, '#facebookStatus');
 			});
+			outputStatusTable(facebook=1, twitter, instagram);
 		}
 		
 		function getTwitter(searches){
@@ -105,17 +123,15 @@
 						tweet.avatar = this.profile_image_url;
 						tweet.text = this.text;
 						tweet.id = this.id_str;
-						allTweets.push(tweet);
+						tweet.network = "twitter";						
+						tweet.html = '<tr><td><a href="http://twitter.com/'+tweet.userId+'">'+tweet.name+'</a> - "'+tweet.text+'" -<a href="https://twitter.com/'+tweet.userId+'/statuses/'+tweet.id+'">'+tweet.time+'</a></td></tr>';
+						allUpdates.posts.push(tweet);
 					});
 					searches.shift();
 					getTwitter(searches);
 				});
 			}else{
-				allTweets.sort(compare);
-				$.each(allTweets, function(i){
-					allTweetsHtml.push('<tr><td><a href="http://twitter.com/'+this.userId+'" style="color:#F7951E">'+this.name+'</a> - "'+this.text+'" -<a href="https://twitter.com/'+this.userId+'/statuses/'+this.id+'">'+this.time+'</a></td></tr>')
-				})
-				outputStatusTable('twitterStatusList', allTweetsHtml, '#twitterStatus');
+				outputStatusTable(facebook, twitter=1, instagram);
 			}
 		}
 
@@ -136,33 +152,29 @@
 						gram.name = this.user.full_name;
 						gram.image = this.images.low_resolution.url;
 						gram.imageLink = this.link;
-						gram.time = this.created_time;
+						gram.time = new Date(parseInt(this.created_time)*1000);
+						gram.network = "instagram";
 
 						if(this.caption){
 							gram.caption = this.caption.text;
 						}else{
 							gram.caption = "";
 						}
-						allInstagram.push(gram);
+						gram.html = '<tr><td><a href="'+gram.imageLink+'">'+gram.name+' - '+gram.caption+' '+gram.time+'<br><img src="'+gram.image+'"></a></td></tr>';
+						allUpdates.posts.push(gram);
 					});
-					locations.shift();		//removes the item we just used
+					locations.shift();			//removes the item we just used 
 					getInstagram(locations);	//pass updated list	
 				});
 			}else{
-				allInstagram.sort(compare);
-				$.each(allInstagram, function(i){
-					allInstagramHtml.push('<tr><td><a href="'+this.imageLink+'" style="color:#F7951E">'+this.name+' - '+this.caption+'<br><img src="'+this.image+'"></a></td></tr>');
-				});
-				outputStatusTable('instagramStatusList', allInstagramHtml, '#instagramStatus');
-				alert(allInstagram.length);
-				alert('static: 1348963200 '+new Date(1348963200*1000)+'\ndynamic '+lastWeek.getTime()+' '+lastWeek);
+				outputStatusTable(facebook, twitter, instagram=1);
 			}			
 		}
 
 		$(document).ready(function(){
-			// Get status updates and locations on load
-			getFacebook();
+			// Get status updates and locations on load 
 			getInstagram(instaLocations);
+			getFacebook();
 			getTwitter(twitterSearches);
 		});
 		</script>
