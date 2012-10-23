@@ -24,6 +24,7 @@
 	<body>
 		<script src="js/jquery-1.8.1.js"></script>
 		<script src="js/bootstrap.min.js"></script>
+		<script src="js/twitter-text.js"></script>
 		<script type="text/javascript">
 		//major festivals in the Park area - //NOT USED YET --- var instaFestivals = [''34758714','20203946',]
 		//'34480183':BSSC Football,'1085877':ice rink,'18870116':baltimore bocce,'2833987':utz field,'18986673':PattersonPark Bocce
@@ -57,8 +58,8 @@
 		var twitter = 0;
 		var instagram = 0;
 		
-		function isMultiple12(n){
-			return n != 0 && n % 12 === 0;
+		function isMultiple6(n){
+			return n != 0 && n % 6 === 0;
 		}
 
 		// outputStatusTable(facebook, twitter, instagram) status of each get is passed
@@ -70,7 +71,8 @@
 				htmlString = '';
 				
 				$.each(allUpdates.posts, function(a){
-					if(isMultiple12(a)){
+					if(isMultiple6(a)){
+						htmlString += this.html;
 						$('<div/>', {
 							'class':'row-fluid',
 							html: htmlString
@@ -116,7 +118,7 @@
 					
 					if(post.type == 'status') {
 						post.message = this.message;	
-						post.html = '<div class="span1"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - '+post.time+'</div>'; 
+						post.html = '<div class="span2"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - '+post.time+'</div>'; 
 					}
 					if(post.type == 'link') {
 						post.link = this.link;
@@ -124,9 +126,9 @@
 						post.linkDescription = this.description;
 						post.message = this.message;
 						if(post.message){
-							post.html = '<div class="span1"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
+							post.html = '<div class="span2"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
 						}else{
-							post.html = '<div class="span1"><font color="#F7951E">'+post.name+'</font> - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
+							post.html = '<div class="span2"><font color="#F7951E">'+post.name+'</font> - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
 						}
 					}
 					allUpdates.posts.push(post);
@@ -153,7 +155,7 @@
 						tweet.text = this.text;
 						tweet.id = this.id_str;
 						tweet.network = "twitter";						
-						tweet.html = '<div class="span1"><a href="http://twitter.com/'+tweet.userId+'">'+tweet.name+'</a> - "'+tweet.text+'" -<a href="https://twitter.com/'+tweet.userId+'/statuses/'+tweet.id+'">'+tweet.time+'</a></div>';
+						tweet.html = '<div class="span2"><a href="http://twitter.com/'+tweet.userId+'">'+tweet.name+'</a> - "'+twttr.txt.autoLink(tweet.text)+'" -<a href="https://twitter.com/'+tweet.userId+'/statuses/'+tweet.id+'">'+tweet.time+'</a></div>';
 						allUpdates.posts.push(tweet);
 					});
 					searches.shift();
@@ -189,7 +191,7 @@
 						}else{
 							gram.caption = "";
 						}
-						gram.html = '<div class="span1"><a href="'+gram.imageLink+'">'+gram.name+' - '+gram.caption+' '+gram.time+'<br><img src="'+gram.image+'"></a></div>';
+						gram.html = '<div class="span2"><a href="'+gram.imageLink+'">'+gram.name+' - '+gram.caption+' '+gram.time+'<br><img src="'+gram.image+'"></a></div>';
 						allUpdates.posts.push(gram);
 					});
 					locations.shift();			//removes the item we just used 
