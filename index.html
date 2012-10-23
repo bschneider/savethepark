@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>What's Happening In Patterson Park</title>
+		<title>Current - Patterson Park</title>
 		<!-- Bootstrap -->
 		<!--  <link href="css/bootstrap.min.css" rel="stylesheet"> -->
-		<link href="css/bootstrap.min.space.css" rel="stylesheet">
-		<!-- <link href="css/bootstrap.min.spruce.css" rel="stylesheet">  -->
+		<!-- <link href="css/bootstrap.min.space.css" rel="stylesheet">  -->
+		<link href="css/bootstrap.min.spruce.css" rel="stylesheet">
 		<script type="text/javascript">
 		
 		  var _gaq = _gaq || [];
@@ -30,7 +30,7 @@
 		//'34480183':BSSC Football,'1085877':ice rink,'18870116':baltimore bocce,'2833987':utz field,'18986673':PattersonPark Bocce
 		
 		// GLOBALS, 
-		var DAYS_TO_SEARCH = 7;
+		var DAYS_TO_SEARCH = 10;
 		var instaLocations = ['tags/pattersonpark','locations/76385','locations/76376','locations/3675624','locations/3618223','locations/2300010','locations/91429','locations/5369637','locations/11110077','locations/10537008'];
 		var twitterSearches = ['%22Patterson%20Park%22','dontpavethepark','&geocode=39.289095,-76.580256,1km'];
 		var now = new Date();
@@ -59,7 +59,7 @@
 		var instagram = 0;
 		
 		function isMultiple6(n){
-			return n != 0 && n % 6 === 0;
+			return n % 6 === 0;
 		}
 
 		// outputStatusTable(facebook, twitter, instagram) status of each get is passed
@@ -70,8 +70,10 @@
 				allUpdates.posts.sort(compare);
 				htmlString = '';
 				
+				//Breaks into rows of 6 posts each 
 				$.each(allUpdates.posts, function(a){
-					if(isMultiple6(a)){
+					if(this.network == "facebook") alert(this.type + " - "+this.html);
+					if(isMultiple6(a+1)){
 						htmlString += this.html;
 						$('<div/>', {
 							'class':'row-fluid',
@@ -118,7 +120,7 @@
 					
 					if(post.type == 'status') {
 						post.message = this.message;	
-						post.html = '<div class="span2 well well-small"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - '+post.time+'</div>'; 
+						post.html = '<div class="span2 well well-small">'+post.name+' - "'+post.message+' - '+post.time+'</div>'; 
 					}
 					if(post.type == 'link') {
 						post.link = this.link;
@@ -126,11 +128,27 @@
 						post.linkDescription = this.description;
 						post.message = this.message;
 						if(post.message){
-							post.html = '<div class="span2 well well-small"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
+							post.html = '<div class="span2 well well-small">'+post.name+' - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
 						}else{
-							post.html = '<div class="span2 well well-small"><font color="#F7951E">'+post.name+'</font> - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
+							post.html = '<div class="span2 well well-small">'+post.name+' - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
 						}
 					}
+					if(post.type == 'photo'){
+						post.image = this.picture;
+						if(this.caption){
+							post.caption = this.caption;
+						}else{
+							post.caption = "";
+						}
+						post.html = '<div class="span2 well well-small">'+post.name+' - '+post.caption+" "+post.time+'<br><img src="'+post.image+'"></div>';
+					}
+					if(post.type == 'video'){
+						post.video = this.source;
+						post.message = this.message;
+						
+						post.html= '<div class="span2 well well-small">'+post.name+' - '+post.message+" "+post.time+'<a href="'+post.video+'">'+post.video+'</a></div>';
+					}
+					//alert(post.html);
 					allUpdates.posts.push(post);
 				});
 			});
@@ -258,16 +276,21 @@
 				<div class="span8">
 					<p class="lead">Dear Mayor Rawlings-Blake,<br>
 					Before deciding to do irreparable harm to Patterson Park and the livelihood of the surrounding communities please take a look at the everyday life taking place in the Park. 
-					This expanded parking and senior center will truly harm the best greenspace in all of Baltimore. I truly hope these social media posts 
+					This expanded parking and senior center will truly harm the best greenspace in all of Baltimore. I truly hope these social media posts will show how the Park is used on a daily 
+					basis by the residents of the communities.
 					<br><br>Please keep our Park green and free of cars!
-					<br><br>If you want to get involved please attend the meetings and sign the petition to the right.
+					<br><br>If you want to get involved please check out the links above.
+					</p>
+				</div>
+				<div class="span4">
+				
 				</div>
 			</div>
 		</div>
 		<br>
 		<div class="row-fluid show-grid">
 			<div class="span12" id="status">
-		<!-- statuses go here? -->	
+				<!-- statuses go here -->	
 			</div>
 		</div>
 		<div align="center"><a href="http://madewithloveinbaltimore.org">Made with &hearts; in Baltimore</a></div>
