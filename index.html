@@ -118,7 +118,7 @@
 					
 					if(post.type == 'status') {
 						post.message = this.message;	
-						post.html = '<div class="span2"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - '+post.time+'</div>'; 
+						post.html = '<div class="span2 well well-small"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - '+post.time+'</div>'; 
 					}
 					if(post.type == 'link') {
 						post.link = this.link;
@@ -126,9 +126,9 @@
 						post.linkDescription = this.description;
 						post.message = this.message;
 						if(post.message){
-							post.html = '<div class="span2"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
+							post.html = '<div class="span2 well well-small"><font color="#F7951E">'+post.name+'</font> - "'+post.message+' - <a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
 						}else{
-							post.html = '<div class="span2"><font color="#F7951E">'+post.name+'</font> - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
+							post.html = '<div class="span2 well well-small"><font color="#F7951E">'+post.name+'</font> - "<a href="'+post.link+'" title="'+post.linkDescription+'">'+post.linkName+'</a> - '+post.time+'</div>';
 						}
 					}
 					allUpdates.posts.push(post);
@@ -155,7 +155,7 @@
 						tweet.text = this.text;
 						tweet.id = this.id_str;
 						tweet.network = "twitter";						
-						tweet.html = '<div class="span2"><a href="http://twitter.com/'+tweet.userId+'">'+tweet.name+'</a> - "'+twttr.txt.autoLink(tweet.text)+'" -<a href="https://twitter.com/'+tweet.userId+'/statuses/'+tweet.id+'">'+tweet.time+'</a></div>';
+						tweet.html = '<div class="span2 well well-small"><a href="http://twitter.com/'+tweet.userId+'">'+tweet.name+'</a> - "'+twttr.txt.autoLink(tweet.text)+'" -<a href="https://twitter.com/'+tweet.userId+'/statuses/'+tweet.id+'">'+tweet.time+'</a></div>';
 						allUpdates.posts.push(tweet);
 					});
 					searches.shift();
@@ -191,7 +191,7 @@
 						}else{
 							gram.caption = "";
 						}
-						gram.html = '<div class="span2"><a href="'+gram.imageLink+'">'+gram.name+' - '+gram.caption+' '+gram.time+'<br><img src="'+gram.image+'"></a></div>';
+						gram.html = '<div class="span2 well well-small"><a href="'+gram.imageLink+'">'+gram.name+' - '+gram.caption+' '+gram.time+'<br><img src="'+gram.image+'"></a></div>';
 						allUpdates.posts.push(gram);
 					});
 					locations.shift();			//removes the item we just used 
