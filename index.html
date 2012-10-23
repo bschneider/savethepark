@@ -30,11 +30,12 @@
 		//'34480183':BSSC Football,'1085877':ice rink,'18870116':baltimore bocce,'2833987':utz field,'18986673':PattersonPark Bocce
 		
 		// GLOBALS, 
-		var DAYS_TO_SEARCH = 10;
+		var DAYS_TO_SEARCH = 10;		//Currently set to 7 days, can change as needed 
 		var instaLocations = ['tags/pattersonpark','locations/76385','locations/76376','locations/3675624','locations/3618223','locations/2300010','locations/91429','locations/5369637','locations/11110077','locations/10537008'];
 		var twitterSearches = ['%22Patterson%20Park%22','dontpavethepark','&geocode=39.289095,-76.580256,1km'];
 		var now = new Date();
-		var lastWeek = new Date(now.getTime()-1000*60*60*24*DAYS_TO_SEARCH);		//Currently set to 7 days, can change as needed 
+		var lastWeek = new Date(now.getTime()-1000*60*60*24*DAYS_TO_SEARCH);
+		var progress = 1;
 		
 		//object for all posts
 		//	list of objects that roughly share the same members and represent the posts. 
@@ -68,11 +69,12 @@
 			if (f && t && i){
 				//All networks have reported done, no we can sort. 
 				allUpdates.posts.sort(compare);
+				$('#loadingBar').width("100%");
+				$('#loadingBarDiv').hide(2000);
 				htmlString = '';
 				
 				//Breaks into rows of 6 posts each 
 				$.each(allUpdates.posts, function(a){
-					if(this.network == "facebook") alert(this.type + " - "+this.html);
 					if(isMultiple6(a+1)){
 						htmlString += this.html;
 						$('<div/>', {
@@ -92,6 +94,8 @@
 						html: htmlString
 					}).appendTo('#status');
 				}
+			}else{
+				$('#loadingBar').width(progress+"%");
 			}
 		}
 		
@@ -108,8 +112,7 @@
 			//Searches all public status updates, gets the link if there is one.
 			//Want to expand to pages that represent Patterson Park area (PPNA, Dog Park, BSSC) 
 			//45 was picked because that's how many tweets we can get without oauth 
-			$.getJSON('https://graph.facebook.com/search?q=%22Patterson%20Park%22&type=post&limit=45', function(json) {
-				var facebookItems = [];
+			$.getJSON('https://graph.facebook.com/search?q=%22Patterson%20Park%22&type=post&limit=45', function(json) {				
 				$.each(json.data, function(i){
 					var post = {};
 					post.id = this.id;
@@ -148,10 +151,10 @@
 						
 						post.html= '<div class="span2 well well-small">'+post.name+' - '+post.message+" "+post.time+'<a href="'+post.video+'">'+post.video+'</a></div>';
 					}
-					//alert(post.html);
 					allUpdates.posts.push(post);
 				});
 			});
+			progress += 33;
 			outputStatusTable(facebook=1, twitter, instagram);
 		}
 		
@@ -180,6 +183,7 @@
 					getTwitter(searches);
 				});
 			}else{
+				progress += 33;
 				outputStatusTable(facebook, twitter=1, instagram);
 			}
 		}
@@ -216,6 +220,7 @@
 					getInstagram(locations);	//pass updated list	
 				});
 			}else{
+				progress += 33;
 				outputStatusTable(facebook, twitter, instagram=1);
 			}			
 		}
@@ -290,7 +295,10 @@
 		<br>
 		<div class="row-fluid show-grid">
 			<div class="span12" id="status">
-				<!-- statuses go here -->	
+				<!-- statuses go here -->
+				<div class="progress progress-success progress-striped active" id="loadingBarDiv">
+					<div class="bar" style="width: 1%;" id="loadingBar"></div>
+				</div>
 			</div>
 		</div>
 		<div align="center"><a href="http://madewithloveinbaltimore.org">Made with &hearts; in Baltimore</a></div>
